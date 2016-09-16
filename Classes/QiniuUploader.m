@@ -105,36 +105,36 @@
             
             NSURLSessionTask * uploadTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
                 if(error) {
-                    if (self.uploadOneFileFailed) {
-                        dispatch_async(dispatch_get_main_queue(), ^{
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        if (self.uploadOneFileFailed) {
                             self.uploadOneFileFailed(i, error);
-                        });
-                    }
+                        }
+                    });
                 } else {
                     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
                     if (httpResponse.statusCode == 200) {
                         NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:data options:(NSJSONReadingAllowFragments) error:nil];
-                        if (self.uploadOneFileSucceeded) {
-                            dispatch_async(dispatch_get_main_queue(), ^{
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if (self.uploadOneFileSucceeded) {
                                 self.uploadOneFileSucceeded(i, dic[@"key"], dic);
-                            });
-                        }
+                            }
+                        });
                     } else {
-                        if (self.uploadOneFileFailed) {
-                            error = [NSError errorWithDomain:kQiniuUploadURL code:httpResponse.statusCode userInfo:@{ NSLocalizedDescriptionKey : NSLocalizedString([NSString stringWithUTF8String:[data bytes]], @"")}];
-                            dispatch_async(dispatch_get_main_queue(), ^{
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if (self.uploadOneFileFailed) {
+                                NSError* error = [NSError errorWithDomain:kQiniuUploadURL code:httpResponse.statusCode userInfo:@{ NSLocalizedDescriptionKey : NSLocalizedString([NSString stringWithUTF8String:[data bytes]], @"")}];
                                 self.uploadOneFileFailed(i, error);
-                            });
-                        }
+                            }
+                        });
                     }
                     
                     if (i == self.files.count - 1) {
-                        if(self.uploadAllFilesComplete){
-                            dispatch_async(dispatch_get_main_queue(), ^{
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            if(self.uploadAllFilesComplete){
                                 self.uploadAllFilesComplete();
                                 [self stopUpload];
-                            });
-                        }
+                            }
+                        });
                     } else {
                         [(NSOperation *)operations[i+1] start];
                     }
